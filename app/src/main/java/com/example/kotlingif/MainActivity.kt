@@ -5,9 +5,8 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.widget.AbsListView
-import android.widget.ScrollView
-import androidx.annotation.MainThread
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,23 +14,23 @@ import com.google.gson.GsonBuilder
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.*
 import java.io.IOException
-import java.lang.reflect.Array.get
 
 class MainActivity : AppCompatActivity() {
 
         val mLayoutManager= LinearLayoutManager(this@MainActivity)
-
-        val lastVisibleItemPosition: Int = mLayoutManager.findLastVisibleItemPosition()
 
         var isScrolling: Boolean = false
         var currentItem: Int = 0
         var scrollOutItems: Int = 0
         var totalItems: Int = 0
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
             super.onCreate(savedInstanceState)
             setContentView(R.layout.activity_main)
+
+           // var progressbar = findViewById(R.id.progressBar) as ProgressBar
 
             recyclerView.setLayoutManager(mLayoutManager)
 
@@ -68,6 +67,7 @@ class MainActivity : AppCompatActivity() {
                                 override fun onFinish() {
                                     if(newText.isNotEmpty()){
                                         fetchJson(newText, 0)
+                                        progressBar.visibility=View.VISIBLE
 
                                     }
                                     Log.d("FINISHED", "DONE")
@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity() {
 
                         runOnUiThread {
                             recyclerView.adapter = MainAdapter(HomeFeed)
-                            setRecyclerViewScrollListener(searchVar)
+                            setRecyclerViewScrollListener(searchVar, OffsetValue)
 
                         }
                     }
@@ -122,11 +122,7 @@ class MainActivity : AppCompatActivity() {
                  })
                 }
 
-            fun newcall(offsetvalue: Int){
-                fetchJson("happy", offsetvalue)
-            }
-
-            private fun setRecyclerViewScrollListener(SearchString: String) {
+            private fun setRecyclerViewScrollListener(SearchString: String, OffsetIncreament: Int) {
 
                 recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
 
@@ -136,6 +132,7 @@ class MainActivity : AppCompatActivity() {
 
                         if(newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL){
                             isScrolling = true
+                            progressBar.visibility=View.VISIBLE
                         }
                     }
 
@@ -147,7 +144,10 @@ class MainActivity : AppCompatActivity() {
 
                         if(isScrolling && (currentItem + scrollOutItems == totalItems)){
                             isScrolling = false
-                            fetchJson(SearchString,25)
+                            progressBar.visibility=View.VISIBLE
+
+                            fetchJson(SearchString,OffsetIncreament + 25)
+
                         }
                     }
                 })
