@@ -60,7 +60,6 @@ class MainActivity : AppCompatActivity() {
 
               override fun onTick(millisUntilFinished: Long) {
 
-                Log.d("TIME", "seconds remaining: " + millisUntilFinished / 1000)
               }
 
               override fun onFinish() {
@@ -69,7 +68,6 @@ class MainActivity : AppCompatActivity() {
 
                   fetchJson(newText, 0)
                 }
-                Log.d("FINISHED", "DONE")
               }
             }
             timerCount.start()
@@ -99,16 +97,15 @@ class MainActivity : AppCompatActivity() {
         override fun onResponse(call: Call, response: Response) {
 
           val body = response.body?.string()
-          println(body)
 
           val gson = GsonBuilder().create()
 
           val HomeFeed = gson.fromJson(body, Models.HomeFeed::class.java)
 
-          runOnUiThread {
+          runOnUiThread {   // Avoid Clogging Main Thread
 
-            recyclerView.adapter = MainAdapter(HomeFeed)
-            setRecyclerViewScrollListener(searchVar, OffsetValue)
+            recyclerView.adapter = MainAdapter(HomeFeed)     // Setting the adapter for Recycler View
+            setRecyclerViewScrollListener(searchVar, OffsetValue)   // Setting On Scroll Listener for Recycler View
           }
         }
 
@@ -130,21 +127,21 @@ class MainActivity : AppCompatActivity() {
           if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
 
             isScrolling = true
-            progressBar.visibility = View.VISIBLE
+            progressBar.visibility = View.VISIBLE   // Progress Bar Set to be visible
           }
         }
 
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
 
           super.onScrolled(recyclerView, dx, dy)
-          currentItem = mLayoutManager.childCount
-          totalItems = mLayoutManager.itemCount
-          scrollOutItems = mLayoutManager.findFirstVisibleItemPosition()
+          currentItem = mLayoutManager.childCount   // Currently Visible Items in the layout
+          totalItems = mLayoutManager.itemCount   //Total Item In the Layout
+          scrollOutItems = mLayoutManager.findFirstVisibleItemPosition()  //Scrolled out of the screen its on Top
 
-          if (isScrolling && (currentItem + scrollOutItems == totalItems)) {
+          if (isScrolling && (currentItem + scrollOutItems == totalItems)) {  //When 2 + 23 = 25
 
-            isScrolling = false
-            fetchJson(SearchString, OffsetIncreament + 25)
+            isScrolling = false   //Set isScrolling to False
+            fetchJson(SearchString, OffsetIncreament + 25)   // Call method with Offset value of 25 without changing Search String
           }
         }
       })

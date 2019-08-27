@@ -11,7 +11,7 @@ class MainAdapter(private val homeFeed: Models.HomeFeed) : RecyclerView.Adapter<
 
     override fun getItemCount(): Int {
 
-        return homeFeed.data.size
+        return homeFeed.data.size     // Size of the data array in Response
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomViewHolder {
@@ -28,7 +28,7 @@ class MainAdapter(private val homeFeed: Models.HomeFeed) : RecyclerView.Adapter<
 
         val gifImage = holder.view.imageView
 
-        Glide.with(holder.view.context)
+        Glide.with(holder.view.context)    // Using Glide to load data
             .asGif()
             .load(data.images.fixed_width.url)
             .into(gifImage)
