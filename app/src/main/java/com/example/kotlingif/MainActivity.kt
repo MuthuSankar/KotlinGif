@@ -17,140 +17,136 @@ import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
-        val mLayoutManager= LinearLayoutManager(this@MainActivity)
+    val mLayoutManager = LinearLayoutManager(this@MainActivity)
 
-        var isScrolling: Boolean = false
-        var currentItem: Int = 0
-        var scrollOutItems: Int = 0
-        var totalItems: Int = 0
+    var isScrolling: Boolean = false
+    var currentItem: Int = 0
+    var scrollOutItems: Int = 0
+    var totalItems: Int = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
-            super.onCreate(savedInstanceState)
-            setContentView(R.layout.activity_main)
+      super.onCreate(savedInstanceState)
+      setContentView(R.layout.activity_main)
 
-           // var progressbar = findViewById(R.id.progressBar) as ProgressBar
+      recyclerView.layoutManager = mLayoutManager
 
-            recyclerView.setLayoutManager(mLayoutManager)
+      fetchJson("happy", 0)
 
-            fetchJson("happy", 0)
+    }
 
-            }
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
 
-            override fun onCreateOptionsMenu(menu: Menu): Boolean{
+      menuInflater.inflate(R.menu.main, menu)
+      val searchItem = menu.findItem(R.id.menu_search)
+      val waitingTime: Long = 200
+      var timerCount: CountDownTimer
 
-                menuInflater.inflate(R.menu.main, menu)
-                val searchItem = menu.findItem(R.id.menu_search)
-                val waitingTime: Long = 200
-                var cntr: CountDownTimer
+      if (searchItem != null) {
 
-                if(searchItem!=null){
-                    val searchView = searchItem.actionView as SearchView
+        val searchView = searchItem.actionView as SearchView
 
-                    searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 
+          override fun onQueryTextSubmit(query: String?): Boolean {
 
-                        override fun onQueryTextSubmit(query: String?): Boolean{
+            return true
+          }
 
-                            return true
-                        }
+          override fun onQueryTextChange(newText: String): Boolean {
 
-                        override fun onQueryTextChange(newText: String): Boolean {
+            timerCount = object : CountDownTimer(waitingTime, 500) {
 
-                            cntr = object : CountDownTimer(waitingTime, 500) {
+              override fun onTick(millisUntilFinished: Long) {
 
-                                override fun onTick(millisUntilFinished: Long) {
-                                    Log.d("TIME", "seconds remaining: " + millisUntilFinished / 1000)
-                                }
+                Log.d("TIME", "seconds remaining: " + millisUntilFinished / 1000)
+              }
 
-                                override fun onFinish() {
-                                    if(newText.isNotEmpty()){
-                                        fetchJson(newText, 0)
-                                        progressBar.visibility=View.VISIBLE
+              override fun onFinish() {
 
-                                    }
-                                    Log.d("FINISHED", "DONE")
-                                }
-                            }
-                            cntr.start()
-                            return true
-                            }
-                  })
+                if (newText.isNotEmpty()) {
+
+                  fetchJson(newText, 0)
                 }
-
-                return super.onCreateOptionsMenu(menu)
-
+                Log.d("FINISHED", "DONE")
+              }
             }
+            timerCount.start()
+            return true
+          }
+        })
+      }
+      return super.onCreateOptionsMenu(menu)
+    }
 
-            fun fetchJson(SearchString: String, OffsetValue: Int) {
+    fun fetchJson(SearchString: String, OffsetValue: Int) {
 
 
-                var searchVar: String = SearchString
+      val searchVar: String = SearchString
 
-                var offset: Int = OffsetValue
+      val offset: Int = OffsetValue
 
-                val API_KEY: String = BuildConfig.API_KEY
+      val API_KEY: String = BuildConfig.API_KEY
 
-                val url =
-                    "https://api.giphy.com/v1/gifs/search?api_key=" + API_KEY + "&q=" + searchVar + "=&limit=25&offset=" + offset + "&rating=G&lang=en"
+      val url = "https://api.giphy.com/v1/gifs/search?api_key=$API_KEY&q=$searchVar=&limit=25&offset=$offset&rating=G&lang=en"
 
-                val request = Request.Builder().url(url).build()
+      val request = Request.Builder().url(url).build()
+      val client = OkHttpClient()
 
-                val client = OkHttpClient()
+      client.newCall(request).enqueue(object : Callback {
 
-                client.newCall(request).enqueue(object : Callback {
+        override fun onResponse(call: Call, response: Response) {
 
-                    override fun onResponse(call: Call, response: Response) {
-                        val body = response?.body?.string()
-                        println(body)
+          val body = response.body?.string()
+          println(body)
 
-                        val gson = GsonBuilder().create()
+          val gson = GsonBuilder().create()
 
-                        val HomeFeed = gson.fromJson(body, Models.HomeFeed::class.java)
+          val HomeFeed = gson.fromJson(body, Models.HomeFeed::class.java)
 
-                        runOnUiThread {
-                            recyclerView.adapter = MainAdapter(HomeFeed)
-                            setRecyclerViewScrollListener(searchVar, OffsetValue)
+          runOnUiThread {
 
-                        }
-                    }
+            recyclerView.adapter = MainAdapter(HomeFeed)
+            setRecyclerViewScrollListener(searchVar, OffsetValue)
+          }
+        }
 
-                override fun onFailure(call: Call, e: IOException) {
-                    println("Failed to execute request")
-                  }
-                 })
-                }
+        override fun onFailure(call: Call, e: IOException) {
 
-            private fun setRecyclerViewScrollListener(SearchString: String, OffsetIncreament: Int) {
+          println("Failed to execute request")
+        }
+      })
+    }
 
-                recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    private fun setRecyclerViewScrollListener(SearchString: String, OffsetIncreament: Int) {
 
-                    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+      recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
 
-                        super.onScrollStateChanged(recyclerView, newState)
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
 
-                        if(newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL){
-                            isScrolling = true
-                            progressBar.visibility=View.VISIBLE
-                        }
-                    }
+          super.onScrollStateChanged(recyclerView, newState)
 
-                    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                        super.onScrolled(recyclerView, dx, dy)
-                        currentItem = mLayoutManager.childCount
-                        totalItems = mLayoutManager.itemCount
-                        scrollOutItems = mLayoutManager.findFirstVisibleItemPosition()
+          if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
 
-                        if(isScrolling && (currentItem + scrollOutItems == totalItems)){
-                            isScrolling = false
-                            progressBar.visibility=View.VISIBLE
+            isScrolling = true
+            progressBar.visibility = View.VISIBLE
+          }
+        }
 
-                            fetchJson(SearchString,OffsetIncreament + 25)
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
 
-                        }
-                    }
-                })
-            }
+          super.onScrolled(recyclerView, dx, dy)
+          currentItem = mLayoutManager.childCount
+          totalItems = mLayoutManager.itemCount
+          scrollOutItems = mLayoutManager.findFirstVisibleItemPosition()
 
+          if (isScrolling && (currentItem + scrollOutItems == totalItems)) {
+
+            isScrolling = false
+            fetchJson(SearchString, OffsetIncreament + 25)
+          }
+        }
+      })
+    }
 }
