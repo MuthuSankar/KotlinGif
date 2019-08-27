@@ -13,4 +13,4 @@
 .externalNativeBuild
 .cxx
 /gradle.properties
-/GIF-190826_004247.gif
+*.gif
